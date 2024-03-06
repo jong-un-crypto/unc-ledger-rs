@@ -1,13 +1,13 @@
-# near-ledger-rs
+# unc-ledger-rs
 
-[![Rust](https://github.com/khorolets/near-ledger-rs/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/khorolets/near-ledger-rs/actions/workflows/rust.yml)
-[![](http://meritbadge.herokuapp.com/near-ledger)](https://crates.io/crates/near-ledger)
-[![]( https://docs.rs/near-ledger/badge.svg)]( https://docs.rs/near-ledger/)
+[![Rust](https://github.com/khorolets/unc-ledger-rs/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/khorolets/unc-ledger-rs/actions/workflows/rust.yml)
+[![](http://meritbadge.herokuapp.com/unc-ledger)](https://crates.io/crates/unc-ledger)
+[![]( https://docs.rs/unc-ledger/badge.svg)]( https://docs.rs/unc-ledger/)
 
-It is NEAR <-> Ledger transport
+It is UNC <-> Ledger transport
 
 
-Provides a set of commands that can be executed to communicate with NEAR App installed on Ledger device:
+Provides a set of commands that can be executed to communicate with UNC App installed on Ledger device:
 
 * Read PublicKey from Ledger device by HD Path
 * Sign a Transaction
@@ -20,7 +20,7 @@ Provides a set of commands that can be executed to communicate with NEAR App ins
 
 
 ```rust
-use near_ledger::get_public_key;
+use unc_ledger::get_public_key;
 use slip10::BIP32Path;
 use std::str::FromStr;
 
@@ -33,11 +33,11 @@ println!("{:#?}", public_key);
 #### Trick
 
 
-To convert the answer into `near_crypto::PublicKey` do:
+To convert the answer into `unc_crypto::PublicKey` do:
 
 ```rust
-let public_key = near_crypto::PublicKey::ED25519(
-    near_crypto::ED25519PublicKey::from(
+let public_key = unc_crypto::PublicKey::ED25519(
+    unc_crypto::ED25519PublicKey::from(
         public_key.to_bytes(),
     )
 );
@@ -48,13 +48,13 @@ let public_key = near_crypto::PublicKey::ED25519(
 
 
 ```rust
-use near_ledger::{sign_transaction, SignTarget};
-use near_primitives::borsh::BorshSerialize;
+use unc_ledger::{sign_transaction, SignTarget};
+use unc_primitives::borsh::BorshSerialize;
 use slip10::BIP32Path;
 use std::str::FromStr;
 
 let hd_path = BIP32Path::from_str("44'/397'/0'/0'/1'").unwrap();
-let borsh_transaction = near_unsigned_transaction.try_to_vec().unwrap();
+let borsh_transaction = unc_unsigned_transaction.try_to_vec().unwrap();
 let signature = sign_transaction(SignTarget::BorshUnsignedTx(borsh_transaction), hd_path).unwrap();
 println!("{:#?}", signature);
 ```
@@ -62,11 +62,11 @@ println!("{:#?}", signature);
 
 #### Trick
 
-To convert the answer into `near_crypto::Signature` do:
+To convert the answer into `unc_crypto::Signature` do:
 
 
 ```rust
-let signature = near_crypto::Signature::from_parts(near_crypto::KeyType::ED25519, &signature)
+let signature = unc_crypto::Signature::from_parts(unc_crypto::KeyType::ED25519, &signature)
     .expect("Signature is not expected to fail on deserialization");
 ```
 

@@ -3,12 +3,12 @@ use std::str::FromStr;
 
 use ed25519_dalek::Signature;
 use ed25519_dalek::Verifier;
-use near_ledger::NEARLedgerError;
-use near_primitives_core::{borsh, borsh::BorshSerialize, hash::CryptoHash, types::AccountId};
+use unc_ledger::UNCLedgerError;
+use unc_primitives_core::{borsh, borsh::BorshSerialize, hash::CryptoHash, types::AccountId};
 use slip10::BIP32Path;
 
-use near_crypto::SecretKey;
-use near_primitives::transaction::{DeployContractAction, FunctionCallAction};
+use unc_crypto::SecretKey;
+use unc_primitives::transaction::{DeployContractAction, FunctionCallAction};
 
 pub fn display_pub_key(public_key: ed25519_dalek::PublicKey) {
     log::info!("---");
@@ -18,8 +18,8 @@ pub fn display_pub_key(public_key: ed25519_dalek::PublicKey) {
     log::info!(
         "{:<10} : {}",
         "base58",
-        near_crypto::PublicKey::ED25519(
-            near_crypto::ED25519PublicKey::from(public_key.to_bytes(),)
+        unc_crypto::PublicKey::ED25519(
+            unc_crypto::ED25519PublicKey::from(public_key.to_bytes(),)
         )
     );
     log::info!("---");
@@ -27,8 +27,8 @@ pub fn display_pub_key(public_key: ed25519_dalek::PublicKey) {
 
 pub fn tx_template(
     ledger_pub_key: ed25519_dalek::PublicKey,
-) -> near_primitives::transaction::Transaction {
-    let public_key = near_crypto::PublicKey::ED25519(near_crypto::ED25519PublicKey::from(
+) -> unc_primitives::transaction::Transaction {
+    let public_key = unc_crypto::PublicKey::ED25519(unc_crypto::ED25519PublicKey::from(
         ledger_pub_key.to_bytes(),
     ));
     let block_hash = "Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E"
@@ -38,7 +38,7 @@ pub fn tx_template(
     let signer_account_str = hex::encode(&ledger_pub_key.to_bytes());
     let receiver_account_str = "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c";
 
-    near_primitives::transaction::Transaction {
+    unc_primitives::transaction::Transaction {
         public_key,
         block_hash,
         nonce: 103595482000005,
@@ -48,9 +48,9 @@ pub fn tx_template(
     }
 }
 
-fn derive_secp256k1_public_key(public_key: &ed25519_dalek::PublicKey) -> near_crypto::PublicKey {
+fn derive_secp256k1_public_key(public_key: &ed25519_dalek::PublicKey) -> unc_crypto::PublicKey {
     let sk = SecretKey::from_seed(
-        near_crypto::KeyType::SECP256K1,
+        unc_crypto::KeyType::SECP256K1,
         &format!("{:?}", public_key),
     );
     sk.public_key()
@@ -59,13 +59,13 @@ fn derive_secp256k1_public_key(public_key: &ed25519_dalek::PublicKey) -> near_cr
 #[allow(deprecated)]
 pub fn batch_of_all_types_of_actions(
     ledger_pub_key: ed25519_dalek::PublicKey,
-) -> Vec<near_primitives::transaction::Action> {
-    let create_account = near_primitives::transaction::Action::CreateAccount(
-        near_primitives::transaction::CreateAccountAction {},
+) -> Vec<unc_primitives::transaction::Action> {
+    let create_account = unc_primitives::transaction::Action::CreateAccount(
+        unc_primitives::transaction::CreateAccountAction {},
     );
 
-    let delete_account = near_primitives::transaction::Action::DeleteAccount(
-        near_primitives::transaction::DeleteAccountAction {
+    let delete_account = unc_primitives::transaction::Action::DeleteAccount(
+        unc_primitives::transaction::DeleteAccountAction {
             beneficiary_id: AccountId::new_unvalidated(
                 "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c1b11b3b31673033936ad07bddc01f9da27d974811e480fb197c799e23480a489".to_string()),
         },
@@ -73,36 +73,36 @@ pub fn batch_of_all_types_of_actions(
 
     let delete_key_ed25519 = {
         let sk = SecretKey::from_seed(
-            near_crypto::KeyType::ED25519,
+            unc_crypto::KeyType::ED25519,
             &format!("{:?}", ledger_pub_key),
         );
         let public_key_ed = sk.public_key();
-        near_primitives::transaction::Action::DeleteKey(Box::new(
-            near_primitives::transaction::DeleteKeyAction {
+        unc_primitives::transaction::Action::DeleteKey(Box::new(
+            unc_primitives::transaction::DeleteKeyAction {
                 public_key: public_key_ed,
             },
         ))
     };
 
-    let delete_key_secp256k1 = near_primitives::transaction::Action::DeleteKey(Box::new(
-        near_primitives::transaction::DeleteKeyAction {
+    let delete_key_secp256k1 = unc_primitives::transaction::Action::DeleteKey(Box::new(
+        unc_primitives::transaction::DeleteKeyAction {
             public_key: derive_secp256k1_public_key(&ledger_pub_key),
         },
     ));
 
-    let stake = near_primitives::transaction::Action::Stake(Box::new(
-        near_primitives::transaction::StakeAction {
-            stake: 1157130000000000000000000, // 1.15713 NEAR,
+    let stake = unc_primitives::transaction::Action::Stake(Box::new(
+        unc_primitives::transaction::StakeAction {
+            stake: 1157130000000000000000000, // 1.15713 UNC,
             public_key: derive_secp256k1_public_key(&ledger_pub_key),
         },
     ));
 
-    let add_key_fullaccess = near_primitives::transaction::Action::AddKey(Box::new(
-        near_primitives::transaction::AddKeyAction {
+    let add_key_fullaccess = unc_primitives::transaction::Action::AddKey(Box::new(
+        unc_primitives::transaction::AddKeyAction {
             public_key: derive_secp256k1_public_key(&ledger_pub_key),
-            access_key: near_primitives_core::account::AccessKey {
+            access_key: unc_primitives_core::account::AccessKey {
                 nonce: 127127127127,
-                permission: near_primitives_core::account::AccessKeyPermission::FullAccess,
+                permission: unc_primitives_core::account::AccessKeyPermission::FullAccess,
             },
         },
     ));
@@ -124,19 +124,19 @@ pub fn batch_of_all_types_of_actions(
             .into_iter()
             .map(Into::into)
             .collect::<Vec<_>>();
-            near_primitives_core::account::FunctionCallPermission {
+            unc_primitives_core::account::FunctionCallPermission {
                     allowance: Some(150000000000000000000),
                     receiver_id:
                     "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c1b11b3b31673033936ad07bddc01f9da27d974811e480fb197c799e23480a489".into(),
                     method_names,
                 }
         };
-        near_primitives::transaction::Action::AddKey(Box::new(
-            near_primitives::transaction::AddKeyAction {
+        unc_primitives::transaction::Action::AddKey(Box::new(
+            unc_primitives::transaction::AddKeyAction {
                 public_key: derive_secp256k1_public_key(&ledger_pub_key),
-                access_key: near_primitives_core::account::AccessKey {
+                access_key: unc_primitives_core::account::AccessKey {
                     nonce: 127127127127,
-                    permission: near_primitives_core::account::AccessKeyPermission::FunctionCall(
+                    permission: unc_primitives_core::account::AccessKeyPermission::FunctionCall(
                         permission,
                     ),
                 },
@@ -144,9 +144,9 @@ pub fn batch_of_all_types_of_actions(
         ))
     };
 
-    let transfer = near_primitives::transaction::Action::Transfer(
-        near_primitives::transaction::TransferAction {
-            deposit: 150000000000000000000000, // 0.15 NEAR
+    let transfer = unc_primitives::transaction::Action::Transfer(
+        unc_primitives::transaction::TransferAction {
+            deposit: 150000000000000000000000, // 0.15 UNC
         },
     );
 
@@ -155,7 +155,7 @@ pub fn batch_of_all_types_of_actions(
 
         let code_hash = CryptoHash::hash_bytes(&code);
         log::info!("Contract code hash: {:?}", code_hash);
-        near_primitives::transaction::Action::DeployContract(DeployContractAction { code })
+        unc_primitives::transaction::Action::DeployContract(DeployContractAction { code })
     };
 
     let function_call_str_args = {
@@ -165,9 +165,9 @@ pub fn batch_of_all_types_of_actions(
             method_name: "saturating_add_signed".to_string(),
             args: args_str.as_bytes().to_vec(),
             gas: 127127122121,
-            deposit: 150000000000000000000000, // 0.15 NEAR,
+            deposit: 150000000000000000000000, // 0.15 UNC,
         };
-        near_primitives::transaction::Action::FunctionCall(Box::new(f_call))
+        unc_primitives::transaction::Action::FunctionCall(Box::new(f_call))
     };
 
     let function_call_binary_args = {
@@ -177,9 +177,9 @@ pub fn batch_of_all_types_of_actions(
             method_name: "saturating_add_signed".to_string(),
             args: args_binary,
             gas: 127127122121,
-            deposit: 150000000000000000000000, // 0.15 NEAR,
+            deposit: 150000000000000000000000, // 0.15 UNC,
         };
-        near_primitives::transaction::Action::FunctionCall(Box::new(f_call))
+        unc_primitives::transaction::Action::FunctionCall(Box::new(f_call))
     };
 
     let function_call_binary_args_after_parse_error = {
@@ -192,10 +192,10 @@ pub fn batch_of_all_types_of_actions(
             method_name: "saturating_add_signed".to_string(),
             args: bytes,
             gas: 127127122121,
-            deposit: 150000000000000000000000, // 0.15 NEAR,
+            deposit: 150000000000000000000000, // 0.15 UNC,
         };
 
-        near_primitives::transaction::Action::FunctionCall(Box::new(f_call))
+        unc_primitives::transaction::Action::FunctionCall(Box::new(f_call))
     };
 
     vec![
@@ -214,7 +214,7 @@ pub fn batch_of_all_types_of_actions(
     ]
 }
 
-pub fn serialize_and_display_tx(transaction: near_primitives::transaction::Transaction) -> Vec<u8> {
+pub fn serialize_and_display_tx(transaction: unc_primitives::transaction::Transaction) -> Vec<u8> {
     log::info!("---");
     log::info!("Transaction:");
     log::info!("{:#?}", transaction);
@@ -230,7 +230,7 @@ pub fn display_signature(signature_bytes: Vec<u8>) -> ed25519_dalek::Signature {
     let signature = Signature::from_bytes(&signature_bytes).unwrap();
 
     let signature_near =
-        near_crypto::Signature::from_parts(near_crypto::KeyType::ED25519, &signature_bytes)
+        unc_crypto::Signature::from_parts(unc_crypto::KeyType::ED25519, &signature_bytes)
             .expect("Signature is not expected to fail on deserialization");
     log::info!("{:<20} : {}", "signature (hex)", signature);
     log::info!("{:<20} : {}", "signature (base58)", signature_near);
@@ -249,20 +249,20 @@ pub fn display_and_verify_signature(
     log::info!("---");
 }
 
-pub fn get_key_sign_and_verify_flow<F>(f_transaction: F) -> Result<(), NEARLedgerError>
+pub fn get_key_sign_and_verify_flow<F>(f_transaction: F) -> Result<(), UNCLedgerError>
 where
-    F: FnOnce(ed25519_dalek::PublicKey) -> near_primitives::transaction::Transaction,
+    F: FnOnce(ed25519_dalek::PublicKey) -> unc_primitives::transaction::Transaction,
 {
     env_logger::builder().init();
     let hd_path = BIP32Path::from_str("44'/397'/0'/0'/1'").unwrap();
 
-    let ledger_pub_key = near_ledger::get_public_key_with_display_flag(hd_path.clone(), false)?;
+    let ledger_pub_key = unc_ledger::get_public_key_with_display_flag(hd_path.clone(), false)?;
     display_pub_key(ledger_pub_key);
 
     let unsigned_transaction = f_transaction(ledger_pub_key);
 
     let bytes = serialize_and_display_tx(unsigned_transaction);
-    let signature_bytes = near_ledger::sign_transaction(bytes.clone(), hd_path)?;
+    let signature_bytes = unc_ledger::sign_transaction(bytes.clone(), hd_path)?;
 
     display_and_verify_signature(bytes, signature_bytes, ledger_pub_key);
 

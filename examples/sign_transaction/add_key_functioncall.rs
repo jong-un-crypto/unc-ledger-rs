@@ -1,13 +1,13 @@
-use near_crypto::SecretKey;
-use near_ledger::NEARLedgerError;
+use unc_crypto::SecretKey;
+use unc_ledger::UNCLedgerError;
 
 #[path = "../common/lib.rs"]
 mod common;
 
-fn tx(ledger_pub_key: ed25519_dalek::PublicKey) -> near_primitives::transaction::Transaction {
+fn tx(ledger_pub_key: ed25519_dalek::PublicKey) -> unc_primitives::transaction::Transaction {
     let mut tx = common::tx_template(ledger_pub_key.clone());
     let sk = SecretKey::from_seed(
-        near_crypto::KeyType::SECP256K1,
+        unc_crypto::KeyType::SECP256K1,
         &format!("{:?}", ledger_pub_key),
     );
     let public_key = sk.public_key();
@@ -27,19 +27,19 @@ fn tx(ledger_pub_key: ed25519_dalek::PublicKey) -> near_primitives::transaction:
     .map(Into::into)
     .collect::<Vec<_>>();
 
-    let permission = near_primitives_core::account::FunctionCallPermission {
+    let permission = unc_primitives_core::account::FunctionCallPermission {
         allowance: Some(150000000000000000000),
         receiver_id:
         "dc7e34eecec3096a4a661e10932834f801149c49dba9b93322f6d9de18047f9c1b11b3b31673033936ad07bddc01f9da27d974811e480fb197c799e23480a489".into(),
         method_names,
     };
 
-    tx.actions = vec![near_primitives::transaction::Action::AddKey(Box::new(
-        near_primitives::transaction::AddKeyAction {
+    tx.actions = vec![unc_primitives::transaction::Action::AddKey(Box::new(
+        unc_primitives::transaction::AddKeyAction {
             public_key,
-            access_key: near_primitives_core::account::AccessKey {
+            access_key: unc_primitives_core::account::AccessKey {
                 nonce: 127127127127,
-                permission: near_primitives_core::account::AccessKeyPermission::FunctionCall(
+                permission: unc_primitives_core::account::AccessKeyPermission::FunctionCall(
                     permission,
                 ),
             },
@@ -48,6 +48,6 @@ fn tx(ledger_pub_key: ed25519_dalek::PublicKey) -> near_primitives::transaction:
     tx
 }
 
-fn main() -> Result<(), NEARLedgerError> {
+fn main() -> Result<(), UNCLedgerError> {
     common::get_key_sign_and_verify_flow(tx)
 }

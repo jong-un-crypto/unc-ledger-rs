@@ -1,12 +1,12 @@
 [package]
-name = "near-ledger"
-version = "0.5.0"
+name = "unc-ledger"
+version = "0.1.0"
 edition = "2018"
 authors = ["Bohdan Khorolets <b@khorolets.com>"]
-description = "Transport library to integrate with NEAR Ledger app"
-repository = "https://github.com/khorolets/near-ledger-rs/"
-license = "GPL-3.0-or-later"
-keywords = ["ledger", "nearprotocol"]
+description = "Transport library to integrate with UNC Ledger app"
+repository = "https://github.com/khorolets/unc-ledger-rs/"
+license = "MIT"
+keywords = ["ledger", "unc"]
 
 [[example]]
 name = "get_version"
@@ -95,11 +95,12 @@ ledger-apdu = "0.10.0"
 slip10 = "0.4.3"
 log = "0.4.20"
 hex = "0.4.3"
-near-primitives-core = "0.20.0"
-near-primitives = "0.20.0"
+unc-primitives-core = "0.1.0"
+unc-primitives = "0.1.0"
 
 [dev-dependencies]
 env_logger = "0.10.0"
-near-crypto = "0.20.0"
-near-primitives = "0.20.0"
-near-account-id = { version = "1.0.0", features = ["internal_unstable"]}
+unc-crypto = "0.1.0"
+unc-primitives = "0.1.0"
+unc-account-id = { version = "0.1.0", features = ["internal_unstable"]}
+

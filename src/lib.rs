@@ -1,6 +1,6 @@
-//! NEAR <-> Ledger transport
+//! UNC <-> Ledger transport
 //!
-//! Provides a set of commands that can be executed to communicate with NEAR App installed on Ledger device:
+//! Provides a set of commands that can be executed to communicate with UNC App installed on Ledger device:
 //! - Read PublicKey from Ledger device by HD Path
 //! - Sign a Transaction
 use ledger_transport::APDUCommand;
@@ -8,8 +8,8 @@ use ledger_transport_hid::{
     hidapi::{HidApi, HidError},
     LedgerHIDError, TransportNativeHID,
 };
-use near_primitives::action::delegate::DelegateAction;
-use near_primitives_core::borsh::{self, BorshSerialize};
+use unc_primitives::action::delegate::DelegateAction;
+use unc_primitives_core::borsh::{self, BorshSerialize};
 
 const CLA: u8 = 0x80; // Instruction class
 const INS_GET_PUBLIC_KEY: u8 = 4; // Instruction code to get public key
@@ -32,12 +32,12 @@ const P1_SIGN_NORMAL: u8 = 0;
 const P1_SIGN_NORMAL_LAST_CHUNK: u8 = 0x80;
 
 /// Alias of `Vec<u8>`. The goal is naming to help understand what the bytes to deal with
-pub type NEARLedgerAppVersion = Vec<u8>;
+pub type UNCLedgerAppVersion = Vec<u8>;
 /// Alias of `Vec<u8>`. The goal is naming to help understand what the bytes to deal with
 pub type SignatureBytes = Vec<u8>;
 
 #[derive(Debug)]
-pub enum NEARLedgerError {
+pub enum UNCLedgerError {
     /// Error occuring on init of hidapid and getting current devices list
     HidApiError(HidError),
     /// Error occuring on creating a new hid transport, connecting to first ledger device found  
@@ -72,13 +72,13 @@ fn log_command(index: usize, is_last_chunk: bool, command: &APDUCommand<Vec<u8>>
     );
 }
 
-/// Get the version of NEAR App installed on Ledger
+/// Get the version of UNC App installed on Ledger
 ///
 /// # Returns
 ///
-/// * A `Result` whose `Ok` value is an `NEARLedgerAppVersion` (just a `Vec<u8>` for now, where first value is a major version, second is a minor and the last is the path)
-///  and whose `Err` value is a `NEARLedgerError` containing an error which occurred.
-pub fn get_version() -> Result<NEARLedgerAppVersion, NEARLedgerError> {
+/// * A `Result` whose `Ok` value is an `UNCLedgerAppVersion` (just a `Vec<u8>` for now, where first value is a major version, second is a minor and the last is the path)
+///  and whose `Err` value is a `UNCLedgerError` containing an error which occurred.
+pub fn get_version() -> Result<UNCLedgerAppVersion, UNCLedgerError> {
     //! Something
     // instantiate the connection to Ledger
     // will return an error if Ledger is not connected
@@ -109,10 +109,10 @@ pub fn get_version() -> Result<NEARLedgerAppVersion, NEARLedgerError> {
                 let retcode = response.retcode();
 
                 let error_string = format!("Ledger APDU retcode: 0x{:X}", retcode);
-                return Err(NEARLedgerError::APDUExchangeError(error_string));
+                return Err(UNCLedgerError::APDUExchangeError(error_string));
             }
         }
-        Err(err) => return Err(NEARLedgerError::LedgerHIDError(err)),
+        Err(err) => return Err(UNCLedgerError::LedgerHIDError(err)),
     };
 }
 
@@ -124,13 +124,13 @@ pub fn get_version() -> Result<NEARLedgerAppVersion, NEARLedgerError> {
 /// # Returns
 ///
 /// * A `Result` whose `Ok` value is an `ed25519_dalek::PublicKey` and whose `Err` value is a
-///   `NEARLedgerError` containing an error which
+///   `UNCLedgerError` containing an error which
 ///   occurred.
 ///
 /// # Examples
 ///
 /// ```no_run
-/// use near_ledger::get_public_key;
+/// use unc_ledger::get_public_key;
 /// use slip10::BIP32Path;
 /// use std::str::FromStr;
 ///
@@ -143,27 +143,27 @@ pub fn get_version() -> Result<NEARLedgerAppVersion, NEARLedgerError> {
 ///
 /// # Trick
 ///
-/// To convert the answer into `near_crypto::PublicKey` do:
+/// To convert the answer into `unc_crypto::PublicKey` do:
 ///
 /// ```
 /// # let public_key_bytes = [10u8; 32];
 /// # let public_key = ed25519_dalek::PublicKey::from_bytes(&public_key_bytes).unwrap();
-/// let public_key = near_crypto::PublicKey::ED25519(
-///     near_crypto::ED25519PublicKey::from(
+/// let public_key = unc_crypto::PublicKey::ED25519(
+///     unc_crypto::ED25519PublicKey::from(
 ///         public_key.to_bytes(),
 ///     )
 /// );
 /// ```
 pub fn get_public_key(
     hd_path: slip10::BIP32Path,
-) -> Result<ed25519_dalek::PublicKey, NEARLedgerError> {
+) -> Result<ed25519_dalek::PublicKey, UNCLedgerError> {
     get_public_key_with_display_flag(hd_path, true)
 }
 
 pub fn get_public_key_with_display_flag(
     hd_path: slip10::BIP32Path,
     display_and_confirm: bool,
-) -> Result<ed25519_dalek::PublicKey, NEARLedgerError> {
+) -> Result<ed25519_dalek::PublicKey, UNCLedgerError> {
     // instantiate the connection to Ledger
     // will return an error if Ledger is not connected
     let transport = get_transport()?;
@@ -202,16 +202,16 @@ pub fn get_public_key_with_display_flag(
                 let retcode = response.retcode();
 
                 let error_string = format!("Ledger APDU retcode: 0x{:X}", retcode);
-                return Err(NEARLedgerError::APDUExchangeError(error_string));
+                return Err(UNCLedgerError::APDUExchangeError(error_string));
             }
         }
-        Err(err) => return Err(NEARLedgerError::LedgerHIDError(err)),
+        Err(err) => return Err(UNCLedgerError::LedgerHIDError(err)),
     };
 }
 
 pub fn get_wallet_id(
     hd_path: slip10::BIP32Path,
-) -> Result<ed25519_dalek::PublicKey, NEARLedgerError> {
+) -> Result<ed25519_dalek::PublicKey, UNCLedgerError> {
     // instantiate the connection to Ledger
     // will return an error if Ledger is not connected
     let transport = get_transport()?;
@@ -244,44 +244,44 @@ pub fn get_wallet_id(
                 let retcode = response.retcode();
 
                 let error_string = format!("Ledger APDU retcode: 0x{:X}", retcode);
-                return Err(NEARLedgerError::APDUExchangeError(error_string));
+                return Err(UNCLedgerError::APDUExchangeError(error_string));
             }
         }
-        Err(err) => return Err(NEARLedgerError::LedgerHIDError(err)),
+        Err(err) => return Err(UNCLedgerError::LedgerHIDError(err)),
     };
 }
 
-fn get_transport() -> Result<TransportNativeHID, NEARLedgerError> {
+fn get_transport() -> Result<TransportNativeHID, UNCLedgerError> {
     // instantiate the connection to Ledger
     // will return an error if Ledger is not connected
-    let hidapi = HidApi::new().map_err(NEARLedgerError::HidApiError)?;
-    TransportNativeHID::new(&hidapi).map_err(NEARLedgerError::LedgerHidError)
+    let hidapi = HidApi::new().map_err(UNCLedgerError::HidApiError)?;
+    TransportNativeHID::new(&hidapi).map_err(UNCLedgerError::LedgerHidError)
 }
 
-/// Sign the transaction. Transaction should be [borsh serialized](https://github.com/near/borsh-rs) `Vec<u8>`
+/// Sign the transaction. Transaction should be [borsh serialized](https://github.com/unc/borsh-rs) `Vec<u8>`
 ///
 /// # Inputs
-/// * `unsigned_transaction_borsh_serializer` - unsigned transaction `near_primitives::transaction::Transaction`
+/// * `unsigned_transaction_borsh_serializer` - unsigned transaction `unc_primitives::transaction::Transaction`
 /// which is serialized with `BorshSerializer` and basically is just `Vec<u8>`
 /// * `seed_phrase_hd_path` - seed phrase hd path `slip10::BIP32Path` with which to sign
 ///
 /// # Returns
 ///
 /// * A `Result` whose `Ok` value is an `Signature` (bytes) and whose `Err` value is a
-/// `NEARLedgerError` containing an error which occurred.
+/// `UNCLedgerError` containing an error which occurred.
 ///
 /// # Examples
 ///
 /// ```no_run
-/// use near_ledger::sign_transaction;
-/// use near_primitives::{borsh, borsh::BorshSerialize};
+/// use unc_ledger::sign_transaction;
+/// use unc_primitives::{borsh, borsh::BorshSerialize};
 /// use slip10::BIP32Path;
 /// use std::str::FromStr;
 ///
 /// # fn main() {
-/// # let near_unsigned_transaction = [10; 250];
+/// # let unc_unsigned_transaction = [10; 250];
 /// let hd_path = BIP32Path::from_str("44'/397'/0'/0'/1'").unwrap();
-/// let borsh_transaction = borsh::to_vec(&near_unsigned_transaction).unwrap();
+/// let borsh_transaction = borsh::to_vec(&unc_unsigned_transaction).unwrap();
 /// let signature = sign_transaction(borsh_transaction, hd_path).unwrap();
 /// println!("{:#?}", signature);
 /// # }
@@ -289,17 +289,17 @@ fn get_transport() -> Result<TransportNativeHID, NEARLedgerError> {
 ///
 /// # Trick
 ///
-/// To convert the answer into `near_crypto::Signature` do:
+/// To convert the answer into `unc_crypto::Signature` do:
 ///
 /// ```
 /// # let signature = [10; 64].to_vec();
-/// let signature = near_crypto::Signature::from_parts(near_crypto::KeyType::ED25519, &signature)
+/// let signature = unc_crypto::Signature::from_parts(unc_crypto::KeyType::ED25519, &signature)
 ///     .expect("Signature is not expected to fail on deserialization");
 /// ```
 pub fn sign_transaction(
     unsigned_tx: BorshSerializedUnsignedTransaction,
     seed_phrase_hd_path: slip10::BIP32Path,
-) -> Result<SignatureBytes, NEARLedgerError> {
+) -> Result<SignatureBytes, UNCLedgerError> {
     let transport = get_transport()?;
     // seed_phrase_hd_path must be converted into bytes to be sent as `data` to the Ledger
     let hd_path_bytes = hd_path_to_bytes(&seed_phrase_hd_path);
@@ -343,19 +343,19 @@ pub fn sign_transaction(
                     let retcode = response.retcode();
 
                     let error_string = format!("Ledger APDU retcode: 0x{:X}", retcode);
-                    return Err(NEARLedgerError::APDUExchangeError(error_string));
+                    return Err(UNCLedgerError::APDUExchangeError(error_string));
                 }
             }
-            Err(err) => return Err(NEARLedgerError::LedgerHIDError(err)),
+            Err(err) => return Err(UNCLedgerError::LedgerHIDError(err)),
         };
     }
-    Err(NEARLedgerError::APDUExchangeError(
+    Err(UNCLedgerError::APDUExchangeError(
         "Unable to process request".to_owned(),
     ))
 }
 
 #[derive(Debug, BorshSerialize)]
-#[borsh(crate = "near_primitives_core::borsh")]
+#[borsh(crate = "unc_primitives_core::borsh")]
 pub struct NEP413Payload {
     pub messsage: String,
     pub nonce: [u8; 32],
@@ -366,7 +366,7 @@ pub struct NEP413Payload {
 pub fn sign_message_nep413(
     payload: &NEP413Payload,
     seed_phrase_hd_path: slip10::BIP32Path,
-) -> Result<SignatureBytes, NEARLedgerError> {
+) -> Result<SignatureBytes, UNCLedgerError> {
     let transport = get_transport()?;
     // seed_phrase_hd_path must be converted into bytes to be sent as `data` to the Ledger
     let hd_path_bytes = hd_path_to_bytes(&seed_phrase_hd_path);
@@ -410,13 +410,13 @@ pub fn sign_message_nep413(
                     let retcode = response.retcode();
 
                     let error_string = format!("Ledger APDU retcode: 0x{:X}", retcode);
-                    return Err(NEARLedgerError::APDUExchangeError(error_string));
+                    return Err(UNCLedgerError::APDUExchangeError(error_string));
                 }
             }
-            Err(err) => return Err(NEARLedgerError::LedgerHIDError(err)),
+            Err(err) => return Err(UNCLedgerError::LedgerHIDError(err)),
         };
     }
-    Err(NEARLedgerError::APDUExchangeError(
+    Err(UNCLedgerError::APDUExchangeError(
         "Unable to process request".to_owned(),
     ))
 }
@@ -424,7 +424,7 @@ pub fn sign_message_nep413(
 pub fn sign_message_nep366_delegate_action(
     payload: &DelegateAction,
     seed_phrase_hd_path: slip10::BIP32Path,
-) -> Result<SignatureBytes, NEARLedgerError> {
+) -> Result<SignatureBytes, UNCLedgerError> {
     let transport = get_transport()?;
     // seed_phrase_hd_path must be converted into bytes to be sent as `data` to the Ledger
     let hd_path_bytes = hd_path_to_bytes(&seed_phrase_hd_path);
@@ -468,13 +468,13 @@ pub fn sign_message_nep366_delegate_action(
                     let retcode = response.retcode();
 
                     let error_string = format!("Ledger APDU retcode: 0x{:X}", retcode);
-                    return Err(NEARLedgerError::APDUExchangeError(error_string));
+                    return Err(UNCLedgerError::APDUExchangeError(error_string));
                 }
             }
-            Err(err) => return Err(NEARLedgerError::LedgerHIDError(err)),
+            Err(err) => return Err(UNCLedgerError::LedgerHIDError(err)),
         };
     }
-    Err(NEARLedgerError::APDUExchangeError(
+    Err(UNCLedgerError::APDUExchangeError(
         "Unable to process request".to_owned(),
     ))
 }

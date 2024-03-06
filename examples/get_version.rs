@@ -1,7 +1,7 @@
 use env_logger;
-use near_ledger::{get_version, NEARLedgerError};
+use unc_ledger::{get_version, UNCLedgerError};
 
-fn main() -> Result<(), NEARLedgerError> {
+fn main() -> Result<(), UNCLedgerError> {
     env_logger::builder().init();
 
     let version = get_version()?;
