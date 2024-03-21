@@ -1,6 +1,6 @@
 [package]
 name = "unc-ledger"
-version = "0.5.2"
+version = "0.6.0"
 edition = "2018"
 authors = ["Bohdan Khorolets <b@khorolets.com>"]
 description = "Transport library to integrate with UNC Ledger app"
@@ -95,12 +95,12 @@ ledger-apdu = "0.10.0"
 slip10 = "0.4.3"
 log = "0.4.20"
 hex = "0.4.3"
-unc-primitives-core = "0.5.2"
-unc-primitives = "0.5.2"
+unc-primitives-core = "0.6.0"
+unc-primitives = "0.6.0"
 
 [dev-dependencies]
 env_logger = "0.10.0"
-unc-crypto = "0.5.2"
-unc-primitives = "0.5.2"
+unc-crypto = "0.6.0"
+unc-primitives = "0.6.0"
 unc-account-id = { version = "0.1.0", features = ["internal_unstable"]}
 
