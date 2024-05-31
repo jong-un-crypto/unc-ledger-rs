@@ -1,6 +1,6 @@
 [package]
 name = "unc-ledger"
-version = "0.10.2"
+version = "0.12.2"
 edition = "2018"
 authors = ["Bohdan Khorolets <b@khorolets.com>"]
 description = "Transport library to integrate with UNC Ledger app"
@@ -89,18 +89,18 @@ path = "examples/sign_nep_366_delegate_action.rs"
 
 [dependencies]
 ed25519-dalek = { version = "1" }
-ledger-transport = "0.10.0"
-ledger-transport-hid = "0.10.0"
-ledger-apdu = "0.10.0"
+ledger-transport = "0.11.0"
+ledger-transport-hid = "0.11.0"
+ledger-apdu = "0.11.0"
 slip10 = "0.4.3"
 log = "0.4.20"
 hex = "0.4.3"
-unc-primitives-core = "0.10.2"
-unc-primitives = "0.10.2"
+unc-primitives-core = "0.12.2"
+unc-primitives = "0.12.2"
 
 [dev-dependencies]
 env_logger = "0.10.0"
-unc-crypto = "0.10.2"
-unc-primitives = "0.10.2"
+unc-crypto = "0.12.2"
+unc-primitives = "0.12.2"
 unc-account-id = { version = "0.7.2", features = ["internal_unstable"]}
 
